@@ -30,14 +30,8 @@ int add_key(hashmap_t* hashmap, const char* key, const int value)
 	hash_key = hashmap->hash_func(key) % hashmap->length;
 
 	cur_node = &hashmap->plist[hash_key];
-	
-	if (*cur_node != NULL) {
-		printf("cur_node[key]: %s, cur_node[value] = %d\n", (*cur_node)->key, (*cur_node)->value);
-	}
-	
 	while (*cur_node != NULL) {
 		if (strcmp((*cur_node)->key, key) == 0) {
-			printf("not added\n\n");
 			return FALSE;
 		}
 
@@ -46,9 +40,8 @@ int add_key(hashmap_t* hashmap, const char* key, const int value)
 
 	*cur_node = malloc(sizeof(node_t));
 	(*cur_node)->key = key;
-	(*cur_node)->value = value; 
-
-	printf("key = %s, value = %u, hash_key: %u \n\n", hashmap->plist[hash_key]->key, hashmap->plist[hash_key]->value, hash_key);
+	(*cur_node)->value = value;
+	(*cur_node)->next = NULL;
 
 	return TRUE;
 }
