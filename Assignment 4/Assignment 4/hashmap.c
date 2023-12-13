@@ -1,4 +1,7 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 #include "hashmap.h"
 
@@ -6,56 +9,66 @@ hashmap_t* init_hashmap_malloc(size_t length, size_t(*p_hash_func)(const char* k
 {
 	int i = 0;
 	hashmap_t* hashmap = malloc(sizeof(hashmap_t));
+	memset(hashmap, 0, sizeof(hashmap_t));
 
 	hashmap->hash_func = p_hash_func;
-	hashmap->plist = malloc(sizeof(node_t) * length);
 	hashmap->length = length;
-
-	for (i = 0; i < length; i++) {
-		hashmap->plist[i] = NULL;
-	}
+	
+	hashmap->plist = malloc(sizeof(node_t) * length);
+	memset(hashmap->plist, 0, sizeof(node_t) * length);
 
 	return hashmap;
 }
+
 int add_key(hashmap_t* hashmap, const char* key, const int value)
 {
-	assert(hashmap != NULL); 
-
-	node_t* temp_node;
+	node_t** cur_node;
 	size_t hash_key;
+
+	assert(hashmap != NULL);
+
 	hash_key = hashmap->hash_func(key) % hashmap->length;
 
-	temp_node = hashmap->plist[hash_key];
-	while (temp_node != NULL) {
-		if (strcmp(temp_node->key, key) == 0) {
+	cur_node = &hashmap->plist[hash_key];
+	
+	if (*cur_node != NULL) {
+		printf("cur_node[key]: %s, cur_node[value] = %d\n", (*cur_node)->key, (*cur_node)->value);
+	}
+	
+	while (*cur_node != NULL) {
+		if (strcmp((*cur_node)->key, key) == 0) {
+			printf("not added\n\n");
 			return FALSE;
 		}
 
-		temp_node = temp_node->next;
+		cur_node = &(*cur_node)->next;
 	}
 
-	temp_node = malloc(sizeof(node_t));
-	strcpy(temp_node->key, key);
-	temp_node->value = value;
+	*cur_node = malloc(sizeof(node_t));
+	(*cur_node)->key = key;
+	(*cur_node)->value = value; 
+
+	printf("key = %s, value = %u, hash_key: %u \n\n", hashmap->plist[hash_key]->key, hashmap->plist[hash_key]->value, hash_key);
 
 	return TRUE;
 }
 
 int get_value(const hashmap_t* hashmap, const char* key)
 {
-	assert(hashmap != NULL);
-
-	node_t* temp_node; 
+	node_t** cur_node; 
 	size_t hash_key; 
+
+	assert(hashmap != NULL);
+	
 	hash_key = hashmap->hash_func(key) % hashmap->length;
 
-	temp_node = hashmap->plist[hash_key];
-	while (temp_node != NULL) {
-		if (strcmp(temp_node->key, key) == 0) {
-			return temp_node->value;
+	cur_node = &(hashmap->plist[hash_key]);
+	while (*cur_node != NULL) {
+		if (strcmp((*cur_node)->key, key) == 0) {
+			return (*cur_node)->value;
 		}
 
-		temp_node = temp_node->next;
+		cur_node = &(*cur_node)->next;
 	}
 
 	return -1;
@@ -63,13 +76,21 @@ int get_value(const hashmap_t* hashmap, const char* key)
 
 int update_value(hashmap_t* hashmap, const char* key, int value)
 {
+	node_t** cur_node; 
+	size_t hash_key;
+
 	assert(hashmap != NULL);
 
-	size_t hash_key;
-	hash_key = hashmap->hash_func(key);
+	hash_key = hashmap->hash_func(key) % hashmap->length;
 
-	if (hashmap->plist[hash_key] != NULL) {
-		hashmap->plist[hash_key]->value = value;
+	cur_node = &(hashmap->plist[hash_key]);
+	while (*cur_node != NULL) {
+		if (strcmp((*cur_node)->key, key) == 0) {
+			(*cur_node)->value = value;
+			return TRUE;
+		}
+
+		cur_node = &(*cur_node)->next;
 	}
 
 	return FALSE;
@@ -77,18 +98,24 @@ int update_value(hashmap_t* hashmap, const char* key, int value)
 
 int remove_key(hashmap_t* hashmap, const char* key)
 {
-	assert(hashmap != NULL); 
-
+	node_t** cur_node;
 	size_t hash_key; 
-	hash_key = hashmap->hash_func(key); 
 
-	if (hashmap->plist[hash_key] != NULL) {
-		free(hashmap->plist[hash_key]);
+	assert(hashmap != NULL);
 
-		hashmap->plist[hash_key]->key = NULL;
-		hashmap->plist[hash_key]->value = 0;
+	hash_key = hashmap->hash_func(key) % hashmap->length; 
 
-		return TRUE;
+	cur_node = &(hashmap->plist[hash_key]); 
+	while (*cur_node != NULL) {
+		if (strcmp((*cur_node)->key, key) == 0) {
+			node_t* tmp_node = *cur_node;
+			cur_node = (*cur_node)->next;
+			free(tmp_node); 
+			
+			return TRUE;
+		}
+
+		cur_node = &(*cur_node)->next;
 	}
 
 	return FALSE;
@@ -98,7 +125,9 @@ void destroy(hashmap_t* hashmap)
 {
 	int i = 0;
 	for (i = 0; i < (hashmap->length); i++) {
-		free(hashmap->plist[i]);
+		if (hashmap->plist[i] != NULL) {
+			free(hashmap->plist[i]);
+		}
 	}
 
 	free(hashmap->plist);

@@ -30,8 +30,33 @@ int main(void)
 		assert(add_key(hashmap, key, dummy) == FALSE); 
 		c = get_value(hashmap, key); 
 		assert(c == value);
-
 	}
+
+	printf("test1 complete\n");
+
+	for (i = 0; i < 100; i++) {
+		char key[100];
+		int c; 
+		
+		sprintf(key, "key%u", i);
+		assert(remove_key(hashmap, key) == TRUE); 
+
+		c = get_value(hashmap, key); 
+		assert(c == -1); 
+		assert(remove_key(hashmap, key) == FALSE); 
+	}
+
+	printf("test2 complete\n");
+
+	for (i = 0; i < DEFAULT_ARRAY_LENGTH; i++) {
+		assert((hashmap->plist)[i] == NULL); 
+	}
+
+	destroy(hashmap); 
+
+	printf("test3 complete\n");
+
+	return 0;
 }
 
 static size_t hash_function(const char* key)
