@@ -15,28 +15,6 @@ int main(void)
 	hashmap_t* hashmap = NULL; 
 	
 	hashmap = init_hashmap_malloc(DEFAULT_ARRAY_LENGTH, hash_function);
-	char key[100]; 
-	int c; 
-	int dummy = 512; 
-
-	sprintf(key, "key%u", 9); 
-	assert(add_key(hashmap, key, 9) == TRUE);
-
-	sprintf(key, "key%u", 10);
-	add_key(hashmap, key, 10);
-
-	for (i = 0; i < DEFAULT_ARRAY_LENGTH; i++) {
-		if (hashmap->plist[i] != NULL) {
-			node_t** p = &hashmap->plist[i];
-
-			while (*p != NULL) {
-				printf("[key]: %s, [value]: %u\n", (*p)->key, (*p)->value);
-				p = &(*p)->next;
-			}
-		}
-	}
-
-	printf("test0 complete\n");
 
 	for (i = 0; i < 100; i++) {
 		char key[100]; 
